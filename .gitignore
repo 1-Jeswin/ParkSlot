@@ -1,0 +1,68 @@
+# =====================================================================
+# ParkSlot — Git Ignore Configuration
+# =====================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Local Database Files
+# SQLite database files should not be committed to avoid merge conflicts
+# and locked-file sync errors across teammates. The database auto-generates
+# from schema.sql on first run.
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Operating System Files
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor & IDE Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Exported Reports & Generated Output
+*.csv
+!examples/*.csv
+*.log
+
+# Python packaging & distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
