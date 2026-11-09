@@ -1,7 +1,5 @@
 # ParkSlot — Parking Space Identification, Allocation & Utilisation Management System
 
-Welcome to the **ParkSlot** workspace. The functional specifications from the original 30-page requirements document (covering Admin, Owner, and User modules) have been fully transformed into structured, AI-optimized specification files designed specifically for **Antigravity AI**.
-
 ---
 
 ## 📁 Project Specification & Blueprint Files
@@ -26,10 +24,4 @@ Welcome to the **ParkSlot** workspace. The functional specifications from the or
    A plug-and-play prompt template and architectural checklist ready to feed directly into Antigravity AI to start code generation.
 
 ---
-
-## 🚀 How to Begin Project Creation with Antigravity AI
-
-You can now ask Antigravity AI to generate the codebase by saying:
-
-> *"Please start Phase 1 and Phase 2 from `PROJECT_SPECIFICATION.md`: initialize the SQLite database using `schema.sql`, create the project folder structure, and build the main application entry point with the role portal launcher."*
 
