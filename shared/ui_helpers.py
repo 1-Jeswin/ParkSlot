@@ -1,9 +1,23 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from shared.config import COLORS, FONTS
+import os
+from shared.config import COLORS, FONTS, ICON_PNG_PATH, ICON_ICO_PATH
+
+def set_window_icon(window):
+    """Applies the official ParkSlot application icon to any Tkinter window."""
+    try:
+        if os.path.exists(ICON_ICO_PATH):
+            window.iconbitmap(ICON_ICO_PATH)
+        if os.path.exists(ICON_PNG_PATH):
+            icon_img = tk.PhotoImage(file=ICON_PNG_PATH)
+            window.iconphoto(True, icon_img)
+            window._app_icon_ref = icon_img
+    except Exception:
+        pass
 
 def apply_global_styles(root):
-    """Applies modern ttk styles across the entire application."""
+    """Applies modern ttk styles and window icon across the application."""
+    set_window_icon(root)
     root.configure(bg=COLORS["bg_main"])
     style = ttk.Style()
     try:
@@ -38,6 +52,15 @@ def apply_global_styles(root):
     style.configure("Treeview.Heading", font=FONTS["body_bold"], background=COLORS["header_bg"], foreground=COLORS["header_text"])
     style.configure("Treeview", font=FONTS["body"], rowheight=26, background="#FFFFFF", fieldbackground="#FFFFFF")
     style.map("Treeview", background=[("selected", COLORS["primary"])], foreground=[("selected", "#FFFFFF")])
+
+def center_window(window, width: int, height: int):
+    """Centers a Tkinter window on the primary display."""
+    window.update_idletasks()
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = max(0, int((screen_width - width) / 2))
+    y = max(0, int((screen_height - height) / 2))
+    window.geometry(f"{width}x{height}+{x}+{y}")
 
 def create_header(parent, title_text: str, subtitle_text: str = "", on_logout=None):
     """Creates a consistent top navigation banner."""

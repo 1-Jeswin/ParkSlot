@@ -5,6 +5,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = os.path.join(BASE_DIR, "parkslot.db")
 SCHEMA_PATH = os.path.join(BASE_DIR, "schema.sql")
+ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+ICON_PNG_PATH = os.path.join(ASSETS_DIR, "icon.png")
+ICON_ICO_PATH = os.path.join(ASSETS_DIR, "icon.ico")
 
 # Modern Professional Color Palette
 COLORS = {

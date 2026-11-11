@@ -1,14 +1,12 @@
 """
-ParkSlot — Main Application Portal Launcher
-Allows selecting and launching any of the 3 modules:
-1. User (Driver) Module       (run_user.py)
-2. Facility Owner Module      (run_owner.py)
-3. Master Administrator Module (run_admin.py)
+ParkSlot — Minimalist Artistic Portal Launcher
+Professional Parking-Themed Entry UI with Responsive Full-Window Layout
 """
 import tkinter as tk
-from shared.config import COLORS, FONTS
+import os
+from shared.config import ICON_PNG_PATH
 from shared.database import init_db
-from shared.ui_helpers import apply_global_styles
+from shared.ui_helpers import apply_global_styles, center_window
 from user_module.app import UserApp
 from owner_module.app import OwnerApp
 from admin_module.app import AdminApp
@@ -16,116 +14,137 @@ from admin_module.app import AdminApp
 class MainLauncher(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("ParkSlot — Unified Project Launcher")
-        self.geometry("820x540")
-        self.resizable(False, False)
+        self.title("ParkSlot")
+        self.geometry("760x540")
+        self.minsize(520, 440)
+        self.resizable(True, True)
+
+        # Parking-Themed Deep Night Palette
+        self.THEME = {
+            "bg": "#0B132B",           # Deep Midnight Asphalt Navy
+            "surface": "#111B38",      # Elevated parking slot card surface
+            "border": "#1E2E56",       # Subtle slot bay border
+            "border_glow": "#38BDF8",  # Glowing cyan accent line
+            "text": "#F8FAFC",         # Crisp white
+            "text_muted": "#94A3B8",   # Slate gray
+            "driver_hover": "#1D4ED8", # Sapphire Blue
+            "owner_hover": "#6D28D9",  # Amethyst Purple
+            "admin_hover": "#0284C7"   # Cyan Blue
+        }
+
+        self.configure(bg=self.THEME["bg"])
         apply_global_styles(self)
+        center_window(self, 760, 540)
 
         # Ensure database is ready
         init_db()
 
-        # Header Banner
-        header = tk.Frame(self, bg=COLORS["header_bg"], padx=20, pady=20)
-        header.pack(fill="x")
+        self._build_ui()
 
-        tk.Label(
-            header,
+    def _build_ui(self):
+        # Full-window outer container that fills and expands with resizing
+        self.main_container = tk.Frame(self, bg=self.THEME["bg"])
+        self.main_container.pack(fill="both", expand=True)
+
+        # Centered inner canvas / frame for artistic symmetry
+        center_frame = tk.Frame(self.main_container, bg=self.THEME["bg"])
+        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        # -------------------------------------------------------------
+        # 1. ARTISTIC BRANDING (LOGO & NAME)
+        # -------------------------------------------------------------
+        brand_box = tk.Frame(center_frame, bg=self.THEME["bg"])
+        brand_box.pack(pady=(0, 24))
+
+        # Scaled Logo Icon
+        if os.path.exists(ICON_PNG_PATH):
+            try:
+                raw_img = tk.PhotoImage(file=ICON_PNG_PATH)
+                self.logo_img = raw_img.subsample(14, 14)  # ~73x73 px refined logo
+                logo_lbl = tk.Label(brand_box, image=self.logo_img, bg=self.THEME["bg"], bd=0)
+                logo_lbl.pack(pady=(0, 8))
+            except Exception:
+                pass
+
+        # App Name Typography
+        title_lbl = tk.Label(
+            brand_box,
             text="PARKSLOT",
-            font=("Segoe UI", 22, "bold"),
-            fg=COLORS["header_text"],
-            bg=COLORS["header_bg"]
-        ).pack()
+            font=("Segoe UI", 24, "bold"),
+            fg=self.THEME["text"],
+            bg=self.THEME["bg"]
+        )
+        title_lbl.pack()
 
-        tk.Label(
-            header,
-            text="Vehicular Parking Space Identification, Allocation & Utilisation Management System",
-            font=FONTS["small"],
-            fg=COLORS["accent"],
-            bg=COLORS["header_bg"]
-        ).pack(pady=(4, 0))
+        # Minimalist Glowing Parking Bay Line Accent
+        bay_line = tk.Frame(brand_box, bg=self.THEME["border_glow"], height=2, width=42)
+        bay_line.pack(pady=(6, 0))
 
-        # Main Body
-        body = tk.Frame(self, bg=COLORS["bg_main"], padx=30, pady=25)
-        body.pack(fill="both", expand=True)
+        # -------------------------------------------------------------
+        # 2. THREE COMPACT, AESTHETIC LOGIN BUTTONS
+        # -------------------------------------------------------------
+        buttons_box = tk.Frame(center_frame, bg=self.THEME["bg"])
+        buttons_box.pack(pady=(10, 0))
 
-        tk.Label(
-            body,
-            text="Select a Module to Launch:",
-            font=FONTS["subtitle"],
-            bg=COLORS["bg_main"],
-            fg=COLORS["text_dark"]
-        ).pack(anchor="w", pady=(0, 15))
-
-        cards_frame = tk.Frame(body, bg=COLORS["bg_main"])
-        cards_frame.pack(fill="both", expand=True)
-
-        # Module 1: User / Driver
-        self._create_portal_card(
-            cards_frame,
-            col=0,
-            icon="🚗",
-            title="Driver / User Module",
-            subtitle="Assigned to: Teammate 1",
-            desc="• Find available slots\n• Reserve parking & vehicle\n• Track duration & fee\n• View bookings & cancellations",
-            btn_text="Launch Driver Portal",
-            btn_color=COLORS["primary"],
-            action=self.launch_user
+        self._create_compact_aesthetic_button(
+            parent=buttons_box,
+            text="Driver Login",
+            hover_bg=self.THEME["driver_hover"],
+            command=self.launch_user
         )
 
-        # Module 2: Owner
-        self._create_portal_card(
-            cards_frame,
-            col=1,
-            icon="🏢",
-            title="Facility Owner Module",
-            subtitle="Assigned to: Teammate 2",
-            desc="• Register parking facility\n• Manage slot inventory\n• Set vehicle hourly tariffs\n• View bookings & revenues",
-            btn_text="Launch Owner Portal",
-            btn_color=COLORS["secondary"],
-            action=self.launch_owner
+        self._create_compact_aesthetic_button(
+            parent=buttons_box,
+            text="Owner Login",
+            hover_bg=self.THEME["owner_hover"],
+            command=self.launch_owner
         )
 
-        # Module 3: Admin
-        self._create_portal_card(
-            cards_frame,
-            col=2,
-            icon="🛡️",
-            title="Administrator Module",
-            subtitle="Assigned to: Teammate 3",
-            desc="• Central live KPI dashboard\n• Check-in / Check-out\n• Overstay & conflict solver\n• Operational CSV reports",
-            btn_text="Launch Admin Console",
-            btn_color=COLORS["header_bg"],
-            action=self.launch_admin
+        self._create_compact_aesthetic_button(
+            parent=buttons_box,
+            text="Admin Login",
+            hover_bg=self.THEME["admin_hover"],
+            command=self.launch_admin
         )
 
-        # Footer
-        footer = tk.Frame(self, bg=COLORS["bg_main"], pady=10)
-        footer.pack(fill="x")
-        tk.Label(
-            footer,
-            text="Shared Database: parkslot.db (SQLite) | All modules share real-time state",
-            font=FONTS["small"],
-            bg=COLORS["bg_main"],
-            fg=COLORS["text_muted"]
-        ).pack()
+    def _create_compact_aesthetic_button(self, parent, text, hover_bg, command):
+        """Creates a compact, aesthetic pill-style button with subtle glow and borders."""
+        btn_wrapper = tk.Frame(parent, bg=self.THEME["bg"], pady=6)
+        btn_wrapper.pack()
 
-    def _create_portal_card(self, parent, col, icon, title, subtitle, desc, btn_text, btn_color, action):
-        card = tk.Frame(parent, bg=COLORS["bg_card"], bd=1, relief="solid", padx=16, pady=16)
-        card.grid(row=0, column=col, padx=8, pady=5, sticky="nsew")
-        parent.grid_columnconfigure(col, weight=1)
+        btn = tk.Button(
+            btn_wrapper,
+            text=text,
+            font=("Segoe UI", 10, "bold"),
+            fg=self.THEME["text"],
+            bg=self.THEME["surface"],
+            activeforeground="#FFFFFF",
+            activebackground=hover_bg,
+            relief="flat",
+            bd=1,
+            highlightthickness=1,
+            highlightbackground=self.THEME["border"],
+            highlightcolor=self.THEME["border_glow"],
+            width=22,
+            pady=7,
+            cursor="hand2",
+            command=command
+        )
+        btn.pack()
 
-        tk.Label(card, text=icon, font=("Segoe UI", 26), bg=COLORS["bg_card"]).pack(pady=(0, 4))
-        tk.Label(card, text=title, font=FONTS["body_bold"], bg=COLORS["bg_card"], fg=COLORS["text_dark"]).pack()
-        tk.Label(card, text=subtitle, font=FONTS["small"], bg=COLORS["bg_card"], fg=COLORS["accent"]).pack(pady=(0, 8))
+        # Tactile hover effect
+        def on_enter(e):
+            btn.config(bg=hover_bg, highlightbackground=self.THEME["border_glow"])
 
-        tk.Label(card, text=desc, font=FONTS["small"], bg=COLORS["bg_card"], fg=COLORS["text_muted"], justify="left").pack(anchor="w", pady=(0, 16))
+        def on_leave(e):
+            btn.config(bg=self.THEME["surface"], highlightbackground=self.THEME["border"])
 
-        tk.Button(
-            card, text=btn_text, font=FONTS["body_bold"],
-            bg=btn_color, fg="#FFFFFF", bd=0, pady=7, cursor="hand2",
-            command=action
-        ).pack(fill="x", side="bottom")
+        btn.bind("<Enter>", on_enter)
+        btn.bind("<Leave>", on_leave)
 
+    # -----------------------------------------------------------------
+    # LAUNCH HANDLERS
+    # -----------------------------------------------------------------
     def launch_user(self):
         self.withdraw()
         app = UserApp()
@@ -153,4 +172,3 @@ class MainLauncher(tk.Tk):
 if __name__ == "__main__":
     app = MainLauncher()
     app.mainloop()
-
