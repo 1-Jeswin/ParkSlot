@@ -311,31 +311,71 @@ class UserApp(tk.Tk):
         make_stat_card(stats_frame, "My Active Bookings", active_bookings, COLORS["warning"])
 
         # Navigation Hub Menu
-        menu_frame = tk.Frame(main_area, bg=COLORS["bg_card"], bd=1, relief="solid", padx=30, pady=25)
+        menu_frame = tk.Frame(main_area, bg=COLORS["bg_card"], bd=1, relief="solid",
+                              highlightthickness=1, highlightbackground=COLORS["border"],
+                              padx=25, pady=20)
         menu_frame.pack(fill="both", expand=True)
 
         tk.Label(menu_frame, text="Quick Actions & Services", font=FONTS["subtitle"],
-                 bg=COLORS["bg_card"], fg=COLORS["text_dark"]).pack(anchor="w", pady=(0, 15))
+                 bg=COLORS["bg_card"], fg=COLORS["accent"]).pack(anchor="w", pady=(0, 15))
 
         btn_grid = tk.Frame(menu_frame, bg=COLORS["bg_card"])
-        btn_grid.pack(expand=True)
+        btn_grid.pack(fill="both", expand=True)
 
         actions = [
-            ("👤 My Profile", "View and update personal details", self.show_profile),
-            ("🚗 My Vehicles", "Add, view and manage vehicles", self.show_vehicles),
-            ("🅿️ Find Parking", "View available slots and book", self.show_available_slots),
-            ("📅 My Bookings", "View reservations and cancellations", self.show_my_bookings),
-            ("💳 Fee Details", "View parking rates and charges", self.show_fee_details)
+            ("👤", "My Profile", "View and update personal details", self.show_profile),
+            ("🚗", "My Vehicles", "Add, view and manage vehicles", self.show_vehicles),
+            ("🅿️", "Find Parking", "View available slots and book", self.show_available_slots),
+            ("📅", "My Bookings", "View reservations and cancellations", self.show_my_bookings),
+            ("💳", "Fee Details", "View parking rates and charges", self.show_fee_details)
         ]
 
-        for i, (btn_text, desc, cmd) in enumerate(actions):
-            item_box = tk.Frame(btn_grid, bg="#F8FAFC", bd=1, relief="solid", padx=15, pady=12, width=280, height=85)
-            item_box.grid(row=i // 3, column=i % 3, padx=10, pady=10)
-            item_box.pack_propagate(False)
+        # 3 columns responsive grid
+        for col_idx in range(3):
+            btn_grid.columnconfigure(col_idx, weight=1)
 
-            tk.Button(item_box, text=btn_text, font=FONTS["body_bold"], bg=COLORS["primary"], fg="#FFFFFF",
-                      bd=0, cursor="hand2", command=cmd).pack(fill="x")
-            tk.Label(item_box, text=desc, font=FONTS["small"], bg="#F8FAFC", fg=COLORS["text_muted"]).pack(pady=(4, 0))
+        for i, (icon_text, title_text, desc, cmd) in enumerate(actions):
+            item_box = tk.Frame(btn_grid, bg=COLORS["surface"],
+                                highlightthickness=1, highlightbackground=COLORS["border"],
+                                cursor="hand2", padx=16, pady=12)
+            item_box.grid(row=i // 3, column=i % 3, padx=10, pady=8, sticky="nsew")
+
+            top_row = tk.Frame(item_box, bg=COLORS["surface"])
+            top_row.pack(fill="x")
+
+            icon_lbl = tk.Label(top_row, text=icon_text, font=("Segoe UI", 12),
+                                fg=COLORS["accent"], bg=COLORS["surface"], width=3, anchor="center")
+            icon_lbl.pack(side="left")
+
+            title_lbl = tk.Label(top_row, text=title_text, font=FONTS["body_bold"],
+                                 fg=COLORS["text_dark"], bg=COLORS["surface"], anchor="w")
+            title_lbl.pack(side="left", padx=(4, 0))
+
+            desc_lbl = tk.Label(item_box, text=desc, font=FONTS["small"],
+                                bg=COLORS["surface"], fg=COLORS["text_muted"], anchor="w")
+            desc_lbl.pack(fill="x", pady=(6, 0), padx=(4, 0))
+
+            # Hover & Click transitions matching admin module styling
+            def _attach_events(frame, top_f, il, tl, dl, callback):
+                def _enter(e):
+                    for w in (frame, top_f, il, tl, dl):
+                        w.config(bg=COLORS["surface_hi"])
+                    frame.config(highlightbackground=COLORS["accent"])
+                    tl.config(fg="#FFFFFF")
+                def _leave(e):
+                    for w in (frame, top_f, il, tl, dl):
+                        w.config(bg=COLORS["surface"])
+                    frame.config(highlightbackground=COLORS["border"])
+                    tl.config(fg=COLORS["text_dark"])
+                def _click(e):
+                    callback()
+
+                for w in (frame, top_f, il, tl, dl):
+                    w.bind("<Enter>", _enter)
+                    w.bind("<Leave>", _leave)
+                    w.bind("<Button-1>", _click)
+
+            _attach_events(item_box, top_row, icon_lbl, title_lbl, desc_lbl, cmd)
 
     def logout(self):
         if messagebox.askyesno("Logout", "Are you sure you want to log out?"):

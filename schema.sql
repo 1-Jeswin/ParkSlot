@@ -164,7 +164,20 @@ CREATE TABLE IF NOT EXISTS waitlist (
     FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
 );
 
--- 14. Admin Settings Table
+-- 15. Feedbacks Table (User & Owner Inquiries & Ratings)
+CREATE TABLE IF NOT EXISTS feedbacks (
+    feedback_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_type TEXT CHECK(sender_type IN ('User', 'Owner')) NOT NULL,
+    sender_id INTEGER NOT NULL,
+    sender_name TEXT NOT NULL,
+    sender_email TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
+    category TEXT DEFAULT 'General',
+    status TEXT CHECK(status IN ('Unread', 'Read', 'Resolved')) DEFAULT 'Unread',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS admin_settings (
     setting_key TEXT PRIMARY KEY,
     setting_value TEXT NOT NULL,

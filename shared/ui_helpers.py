@@ -45,13 +45,13 @@ def apply_global_styles(root):
     style.configure("Secondary.TButton", font=FONTS["body"], background=COLORS["secondary"], foreground="#FFFFFF")
 
     # Entry and Combobox
-    style.configure("TEntry", padding=5, font=FONTS["body"])
-    style.configure("TCombobox", padding=5, font=FONTS["body"])
+    style.configure("TEntry", padding=5, font=FONTS["body"], fieldbackground=COLORS["bg_card"], foreground=COLORS["text_dark"])
+    style.configure("TCombobox", padding=5, font=FONTS["body"], fieldbackground=COLORS["bg_card"], foreground=COLORS["text_dark"])
 
-    # Treeview styles
-    style.configure("Treeview.Heading", font=FONTS["body_bold"], background=COLORS["header_bg"], foreground=COLORS["header_text"])
-    style.configure("Treeview", font=FONTS["body"], rowheight=26, background="#FFFFFF", fieldbackground="#FFFFFF")
-    style.map("Treeview", background=[("selected", COLORS["primary"])], foreground=[("selected", "#FFFFFF")])
+    # Treeview styles (matching dark parking theme)
+    style.configure("Treeview.Heading", font=FONTS["body_bold"], background=COLORS["surface_hi"], foreground=COLORS["accent"])
+    style.configure("Treeview", font=FONTS["body"], rowheight=26, background=COLORS["bg_card"], fieldbackground=COLORS["bg_card"], foreground=COLORS["text_dark"])
+    style.map("Treeview", background=[("selected", COLORS["accent"])], foreground=[("selected", "#0B132B")])
 
 def center_window(window, width: int, height: int):
     """Centers a Tkinter window on the primary display."""
@@ -63,8 +63,8 @@ def center_window(window, width: int, height: int):
     window.geometry(f"{width}x{height}+{x}+{y}")
 
 def create_header(parent, title_text: str, subtitle_text: str = "", on_logout=None):
-    """Creates a consistent top navigation banner."""
-    header = tk.Frame(parent, bg=COLORS["header_bg"], height=70, padx=20, pady=10)
+    """Creates a consistent polished dark parking-themed top navigation banner."""
+    header = tk.Frame(parent, bg=COLORS["header_bg"], height=58, padx=20, pady=10)
     header.pack(fill="x", side="top")
 
     text_frame = tk.Frame(header, bg=COLORS["header_bg"])
@@ -74,7 +74,7 @@ def create_header(parent, title_text: str, subtitle_text: str = "", on_logout=No
     title.pack(anchor="w")
 
     if subtitle_text:
-        sub = tk.Label(text_frame, text=subtitle_text, font=FONTS["small"], fg=COLORS["accent"], bg=COLORS["header_bg"])
+        sub = tk.Label(text_frame, text=subtitle_text, font=FONTS["small"], fg=COLORS["text_muted"], bg=COLORS["header_bg"])
         sub.pack(anchor="w")
 
     if on_logout:
@@ -86,11 +86,16 @@ def create_header(parent, title_text: str, subtitle_text: str = "", on_logout=No
         )
         btn_logout.pack(side="right", pady=5)
 
+    # Cyan glowing strip beneath header
+    accent_strip = tk.Frame(parent, bg=COLORS["accent"], height=2)
+    accent_strip.pack(fill="x", side="top")
+
     return header
 
 def create_card(parent, padx=15, pady=15):
-    """Creates a card frame with border and white background."""
-    card = tk.Frame(parent, bg=COLORS["bg_card"], bd=1, relief="solid", highlightthickness=0)
+    """Creates a card frame with border and elevated dark background."""
+    card = tk.Frame(parent, bg=COLORS["bg_card"], bd=1, relief="solid", highlightthickness=1,
+                    highlightbackground=COLORS["border"])
     card.pack(fill="both", expand=True, padx=padx, pady=pady)
     return card
 

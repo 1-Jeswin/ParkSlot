@@ -93,6 +93,34 @@ def init_db():
             (user_id, "KL-05-CD-5678", "Bike", "Honda Activa", "Black")
         )
 
+    # Seed Sample Feedbacks from User and Owner if table is empty
+    cursor.execute("SELECT COUNT(*) FROM feedbacks;")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute(
+            """INSERT INTO feedbacks (sender_type, sender_id, sender_name, sender_email, subject, message, category, status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?);""",
+            ("User", 1, "Indrajith Nair", "indrajith@example.com", 
+             "Smooth entry experience at MG Road Hub",
+             "I parked my Maruti Swift at slot A01 yesterday. The automated check-in and barrier gate scanning were seamless. Would appreciate if you could add EV charging indicators as well!",
+             "Experience", "Unread")
+        )
+        cursor.execute(
+            """INSERT INTO feedbacks (sender_type, sender_id, sender_name, sender_email, subject, message, category, status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?);""",
+            ("Owner", 1, "John Doe", "john@parkinghub.com",
+             "Request for dynamic weekend surge pricing feature",
+             "Hello Admin, occupancy at Central Mall reaches 100% on Saturday and Sunday evenings. It would be helpful to configure scheduled weekend hourly rates directly in our owner dashboard.",
+             "Feature Request", "Unread")
+        )
+        cursor.execute(
+            """INSERT INTO feedbacks (sender_type, sender_id, sender_name, sender_email, subject, message, category, status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?);""",
+            ("User", 1, "Indrajith Nair", "indrajith@example.com",
+             "Billing receipt clarification for Session #104",
+             "The calculated overstay fee was accurate, but could we get SMS or email PDF receipts instantly upon checkout? Thanks for the great parking system.",
+             "Billing", "Read")
+        )
+
     conn.commit()
     conn.close()
 

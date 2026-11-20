@@ -353,8 +353,8 @@ class AdminApp(tk.Tk):
                 "accent": DT["sys_accent"],
                 "row": 1, "col": 1,
                 "items": [
-                    ("⚙️  Admin Settings",     self.show_settings),
-                    ("🔄  Refresh Dashboard",  self.show_dashboard),
+                    ("💬  Feedbacks & Inbox",   self.show_feedbacks),
+                    ("🔄  Refresh Dashboard",   self.show_dashboard),
                 ],
             },
         ]
@@ -379,25 +379,41 @@ class AdminApp(tk.Tk):
             tk.Frame(group, bg=DT["border"], height=1).pack(fill="x")
 
             for label, cmd in cat["items"]:
-                btn = tk.Button(
-                    group, text=label,
-                    font=("Segoe UI", 10),
-                    fg=DT["text"], bg=DT["surface"],
-                    activeforeground="#FFFFFF",
-                    activebackground=cat["accent"],
-                    anchor="w", padx=16, pady=7,
-                    relief="flat", bd=0, cursor="hand2",
-                    command=cmd
-                )
-                btn.pack(fill="x")
-                tk.Frame(group, bg=DT["border"], height=1).pack(fill="x")
+                # Split icon and text for precise alignment
+                parts = label.split("  ", 1)
+                icon_text = parts[0]
+                title_text = parts[1] if len(parts) > 1 else ""
 
-                def on_enter(e, b=btn, a=cat["accent"]):
-                    b.config(bg=a)
-                def on_leave(e, b=btn):
-                    b.config(bg=DT["surface"])
-                btn.bind("<Enter>", on_enter)
-                btn.bind("<Leave>", on_leave)
+                btn_frame = tk.Frame(group, bg=DT["surface"], cursor="hand2")
+                btn_frame.pack(fill="x")
+
+                icon_lbl = tk.Label(btn_frame, text=icon_text, font=("Segoe UI", 10),
+                                    fg=DT["text"], bg=DT["surface"], width=4, anchor="center")
+                icon_lbl.pack(side="left", padx=(12, 0), pady=8)
+
+                text_lbl = tk.Label(btn_frame, text=title_text, font=("Segoe UI", 10),
+                                    fg=DT["text"], bg=DT["surface"], anchor="w")
+                text_lbl.pack(side="left", fill="x", expand=True, padx=(4, 16), pady=8)
+
+                def on_enter(e, f=btn_frame, il=icon_lbl, tl=text_lbl, a=cat["accent"]):
+                    f.config(bg=a)
+                    il.config(bg=a, fg="#FFFFFF")
+                    tl.config(bg=a, fg="#FFFFFF")
+
+                def on_leave(e, f=btn_frame, il=icon_lbl, tl=text_lbl):
+                    f.config(bg=DT["surface"])
+                    il.config(bg=DT["surface"], fg=DT["text"])
+                    tl.config(bg=DT["surface"], fg=DT["text"])
+
+                def on_click(e, c=cmd):
+                    c()
+
+                for widget in (btn_frame, icon_lbl, text_lbl):
+                    widget.bind("<Enter>", on_enter)
+                    widget.bind("<Leave>", on_leave)
+                    widget.bind("<Button-1>", on_click)
+
+                tk.Frame(group, bg=DT["border"], height=1).pack(fill="x")
 
     # =========================================================================
     # 7. VEHICLE CHECK-IN (ENTRY)
@@ -1261,78 +1277,264 @@ class AdminApp(tk.Tk):
         load_report_data()
 
     # =========================================================================
-    # 13. ADMIN SETTINGS
+    # 13. FEEDBACKS & INBOX (USER & OWNER FEEDBACK)
     # =========================================================================
-    def show_settings(self):
+    def show_feedbacks(self):
         self.clear_container()
         DT = self.DT
-        self._dark_topbar("Admin Settings",
-                          "Configure operational parameters and system security",
+        self._dark_topbar("Feedbacks & Inquiries",
+                          "User & Owner incoming messages, reviews, and support inquiries",
                           back_cmd=self.show_dashboard)
 
-        main_area = tk.Frame(self.container, bg=DT["bg"], padx=20, pady=20)
+        main_area = tk.Frame(self.container, bg=DT["bg"], padx=20, pady=15)
         main_area.pack(fill="both", expand=True)
 
-        card = tk.Frame(main_area, bg=DT["surface"],
-                        highlightthickness=1, highlightbackground=DT["border_glow"],
-                        padx=36, pady=28)
-        card.pack()
+        # Main 2-column layout: Left column = Mail List, Right column = Reading Pane
+        layout_pane = tk.Frame(main_area, bg=DT["bg"])
+        layout_pane.pack(fill="both", expand=True)
 
-        tk.Label(card, text="⚙️  System Configurations",
-                 font=("Segoe UI", 13, "bold"),
-                 fg=DT["text"], bg=DT["surface"]).grid(row=0, column=0, columnspan=2, pady=(0, 20))
+        layout_pane.columnconfigure(0, weight=4)
+        layout_pane.columnconfigure(1, weight=5)
+        layout_pane.rowconfigure(0, weight=1)
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT setting_key, setting_value FROM admin_settings;")
-        settings = dict(cur.fetchall())
-        conn.close()
+        # ---- LEFT: MAIL-STYLE LIST CONTAINER ----
+        left_box = tk.Frame(layout_pane, bg=DT["surface"],
+                            highlightthickness=1, highlightbackground=DT["border"])
+        left_box.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
 
-        def _lbl(text, row):
-            tk.Label(card, text=text,
-                     font=("Segoe UI", 9),
-                     fg=DT["text_muted"], bg=DT["surface"],
-                     anchor="w").grid(row=row, column=0, sticky="w", pady=8, padx=(0, 20))
+        # Filter bar
+        filter_bar = tk.Frame(left_box, bg=DT["surface_hi"], padx=14, pady=10)
+        filter_bar.pack(fill="x")
 
-        _lbl("Overstay Grace Period (Minutes):", 1)
-        entry_grace = ttk.Entry(card, width=22)
-        entry_grace.insert(0, settings.get("overstay_grace_period_mins", "15"))
-        entry_grace.grid(row=1, column=1, pady=8)
+        tk.Label(filter_bar, text="Filter:", font=("Segoe UI", 9, "bold"),
+                 fg=DT["text_muted"], bg=DT["surface_hi"]).pack(side="left", padx=(0, 6))
 
-        _lbl("Default Car Rate (₹/hr):", 2)
-        entry_car = ttk.Entry(card, width=22)
-        entry_car.insert(0, settings.get("default_hourly_rate_car", "30.0"))
-        entry_car.grid(row=2, column=1, pady=8)
+        filter_var = tk.StringVar(value="All")
+        for f_type in ["All", "User", "Owner", "Unread"]:
+            r = tk.Radiobutton(filter_bar, text=f_type, value=f_type, variable=filter_var,
+                               font=("Segoe UI", 9), fg=DT["text"], bg=DT["surface_hi"],
+                               selectcolor=DT["surface"], activebackground=DT["surface_hi"],
+                               activeforeground=DT["border_glow"], bd=0, cursor="hand2",
+                               command=lambda: render_mail_list())
+            r.pack(side="left", padx=4)
 
-        _lbl("Default Bike Rate (₹/hr):", 3)
-        entry_bike = ttk.Entry(card, width=22)
-        entry_bike.insert(0, settings.get("default_hourly_rate_bike", "15.0"))
-        entry_bike.grid(row=3, column=1, pady=8)
+        # Scrollable mail list
+        list_canvas = tk.Canvas(left_box, bg=DT["surface"], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(left_box, orient="vertical", command=list_canvas.yview)
+        scrollable_mail_frame = tk.Frame(list_canvas, bg=DT["surface"])
 
-        _lbl("System Contact Email:", 4)
-        entry_email = ttk.Entry(card, width=22)
-        entry_email.insert(0, settings.get("system_contact_email", "admin@parkslot.com"))
-        entry_email.grid(row=4, column=1, pady=8)
+        scrollable_mail_frame.bind(
+            "<Configure>",
+            lambda e: list_canvas.configure(scrollregion=list_canvas.bbox("all"))
+        )
+        canvas_window = list_canvas.create_window((0, 0), window=scrollable_mail_frame, anchor="nw")
 
-        def save_settings():
+        def _on_canvas_configure(event):
+            list_canvas.itemconfig(canvas_window, width=event.width)
+
+        list_canvas.bind("<Configure>", _on_canvas_configure)
+        list_canvas.configure(yscrollcommand=scrollbar.set)
+
+        list_canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # ---- RIGHT: READING PANE ----
+        right_box = tk.Frame(layout_pane, bg=DT["surface"],
+                             highlightthickness=1, highlightbackground=DT["border"],
+                             padx=24, pady=20)
+        right_box.grid(row=0, column=1, sticky="nsew")
+
+        # Empty state initially
+        detail_header = tk.Frame(right_box, bg=DT["surface"])
+        detail_header.pack(fill="x", pady=(0, 16))
+
+        tag_lbl = tk.Label(detail_header, text="No feedback selected",
+                           font=("Segoe UI", 8, "bold"), bg=DT["surface_hi"],
+                           fg=DT["text_muted"], padx=8, pady=3)
+        tag_lbl.pack(side="left")
+
+        time_lbl = tk.Label(detail_header, text="", font=("Segoe UI", 8),
+                            fg=DT["text_muted"], bg=DT["surface"])
+        time_lbl.pack(side="right")
+
+        subject_lbl = tk.Label(right_box, text="Select a message from the list to view full details",
+                               font=("Segoe UI", 13, "bold"), fg=DT["text"],
+                               bg=DT["surface"], wraplength=420, justify="left")
+        subject_lbl.pack(anchor="w", pady=(0, 6))
+
+        sender_info_lbl = tk.Label(right_box, text="", font=("Segoe UI", 9),
+                                   fg=DT["border_glow"], bg=DT["surface"])
+        sender_info_lbl.pack(anchor="w", pady=(0, 14))
+
+        tk.Frame(right_box, bg=DT["border"], height=1).pack(fill="x", pady=(0, 16))
+
+        body_text = tk.Text(right_box, bg=DT["surface_hi"], fg=DT["text"],
+                            font=("Segoe UI", 10), wrap="word", relief="flat",
+                            padx=14, pady=12, bd=0, height=14)
+        body_text.pack(fill="both", expand=True, pady=(0, 16))
+        body_text.config(state="disabled")
+
+        action_row = tk.Frame(right_box, bg=DT["surface"])
+        action_row.pack(fill="x")
+
+        status_btn = tk.Button(action_row, text="Mark as Resolved", font=("Segoe UI", 9, "bold"),
+                               bg=DT["btn_success"], fg="#FFFFFF", bd=0, padx=14, pady=6,
+                               cursor="hand2", state="disabled")
+        status_btn.pack(side="left")
+
+        current_selected_feedback = [None]
+
+        def open_feedback_detail(fb_dict):
+            current_selected_feedback[0] = fb_dict
+
+            # Update status in db to Read if Unread
+            if fb_dict["status"] == "Unread":
+                conn = get_db_connection()
+                cur = conn.cursor()
+                cur.execute("UPDATE feedbacks SET status = 'Read' WHERE feedback_id = ?;", (fb_dict["feedback_id"],))
+                conn.commit()
+                conn.close()
+                fb_dict["status"] = "Read"
+                render_mail_list(preserve_id=fb_dict["feedback_id"])
+
+            role_color = "#38BDF8" if fb_dict["sender_type"] == "User" else "#A855F7"
+            tag_lbl.config(
+                text=f"{fb_dict['sender_type'].upper()} FEEDBACK · {fb_dict['status'].upper()}",
+                bg=DT["surface_hi"],
+                fg=role_color
+            )
+            time_lbl.config(text=str(fb_dict["created_at"]))
+            subject_lbl.config(text=fb_dict["subject"])
+            sender_info_lbl.config(
+                text=f"From: {fb_dict['sender_name']}  <{fb_dict['sender_email']}>  ·  Category: {fb_dict['category']}"
+            )
+
+            body_text.config(state="normal")
+            body_text.delete("1.0", "end")
+            body_text.insert("1.0", fb_dict["message"])
+            body_text.config(state="disabled")
+
+            status_btn.config(state="normal", command=lambda: mark_resolved(fb_dict["feedback_id"]))
+
+        def mark_resolved(fb_id):
             conn = get_db_connection()
             cur = conn.cursor()
-            cur.execute("UPDATE admin_settings SET setting_value = ? WHERE setting_key = 'overstay_grace_period_mins';",
-                        (entry_grace.get().strip(),))
-            cur.execute("UPDATE admin_settings SET setting_value = ? WHERE setting_key = 'default_hourly_rate_car';",
-                        (entry_car.get().strip(),))
-            cur.execute("UPDATE admin_settings SET setting_value = ? WHERE setting_key = 'default_hourly_rate_bike';",
-                        (entry_bike.get().strip(),))
-            cur.execute("UPDATE admin_settings SET setting_value = ? WHERE setting_key = 'system_contact_email';",
-                        (entry_email.get().strip(),))
+            cur.execute("UPDATE feedbacks SET status = 'Resolved' WHERE feedback_id = ?;", (fb_id,))
             conn.commit()
             conn.close()
-            messagebox.showinfo("Saved", "Settings updated successfully!")
+            messagebox.showinfo("Updated", "Feedback marked as Resolved.")
+            if current_selected_feedback[0] and current_selected_feedback[0]["feedback_id"] == fb_id:
+                current_selected_feedback[0]["status"] = "Resolved"
+                tag_lbl.config(text=f"{current_selected_feedback[0]['sender_type'].upper()} FEEDBACK · RESOLVED",
+                               fg="#22C55E")
+            render_mail_list(preserve_id=fb_id)
 
-        btn_row = tk.Frame(card, bg=DT["surface"])
-        btn_row.grid(row=5, column=0, columnspan=2, pady=(24, 0))
-        self._dark_btn(btn_row, "💾 Save Configurations", save_settings, color=DT["btn_primary"])
-        self._dark_btn(btn_row, "← Back", self.show_dashboard, color=DT["btn_neutral"])
+        def render_mail_list(preserve_id=None):
+            for w in scrollable_mail_frame.winfo_children():
+                w.destroy()
+
+            filt = filter_var.get()
+            conn = get_db_connection()
+            cur = conn.cursor()
+            if filt == "All":
+                cur.execute("SELECT * FROM feedbacks ORDER BY feedback_id DESC;")
+            elif filt == "Unread":
+                cur.execute("SELECT * FROM feedbacks WHERE status = 'Unread' ORDER BY feedback_id DESC;")
+            else:
+                cur.execute("SELECT * FROM feedbacks WHERE sender_type = ? ORDER BY feedback_id DESC;", (filt,))
+            rows = [dict(r) for r in cur.fetchall()]
+            conn.close()
+
+            if not rows:
+                empty_lbl = tk.Label(scrollable_mail_frame, text="No feedback messages found.",
+                                     font=("Segoe UI", 10), fg=DT["text_muted"], bg=DT["surface"], pady=40)
+                empty_lbl.pack()
+                return
+
+            for fb in rows:
+                is_selected = (preserve_id == fb["feedback_id"])
+                card_bg = DT["surface_hi"] if is_selected else DT["surface"]
+                item_card = tk.Frame(scrollable_mail_frame, bg=card_bg, cursor="hand2", padx=14, pady=10)
+                item_card.pack(fill="x")
+
+                # Top row of list item: Sender badge & Status indicator
+                top_row = tk.Frame(item_card, bg=card_bg)
+                top_row.pack(fill="x")
+
+                sender_badge_color = "#38BDF8" if fb["sender_type"] == "User" else "#A855F7"
+                tk.Label(top_row, text=f"● {fb['sender_type']}", font=("Segoe UI", 8, "bold"),
+                         fg=sender_badge_color, bg=card_bg).pack(side="left")
+
+                tk.Label(top_row, text=fb["sender_name"], font=("Segoe UI", 9, "bold"),
+                         fg=DT["text"], bg=card_bg).pack(side="left", padx=(8, 0))
+
+                stat_fg = "#EF4444" if fb["status"] == "Unread" else ("#22C55E" if fb["status"] == "Resolved" else DT["text_muted"])
+                tk.Label(top_row, text=fb["status"], font=("Segoe UI", 8, "bold"),
+                         fg=stat_fg, bg=card_bg).pack(side="right")
+
+                # Subject Line
+                subj_text = fb["subject"]
+                if len(subj_text) > 42:
+                    subj_text = subj_text[:39] + "..."
+                tk.Label(item_card, text=subj_text, font=("Segoe UI", 9, "bold" if fb["status"] == "Unread" else "normal"),
+                         fg=DT["text"], bg=card_bg, anchor="w").pack(fill="x", pady=(4, 2))
+
+                # Body preview line under subject
+                preview = fb["message"].replace("\n", " ")
+                if len(preview) > 55:
+                    preview = preview[:52] + "..."
+                tk.Label(item_card, text=preview, font=("Segoe UI", 8),
+                         fg=DT["text_muted"], bg=card_bg, anchor="w").pack(fill="x")
+
+                sep = tk.Frame(scrollable_mail_frame, bg=DT["border"], height=1)
+                sep.pack(fill="x")
+
+                # Bind click and hover events to item and all its children
+                def _make_events(card_w, data):
+                    def _enter(e):
+                        if current_selected_feedback[0] is None or current_selected_feedback[0]["feedback_id"] != data["feedback_id"]:
+                            for child in card_w.winfo_children():
+                                if isinstance(child, tk.Frame):
+                                    for subchild in child.winfo_children():
+                                        subchild.config(bg=DT["surface_hi"])
+                                    child.config(bg=DT["surface_hi"])
+                                child.config(bg=DT["surface_hi"])
+                            card_w.config(bg=DT["surface_hi"])
+
+                    def _leave(e):
+                        if current_selected_feedback[0] is None or current_selected_feedback[0]["feedback_id"] != data["feedback_id"]:
+                            for child in card_w.winfo_children():
+                                if isinstance(child, tk.Frame):
+                                    for subchild in child.winfo_children():
+                                        subchild.config(bg=DT["surface"])
+                                    child.config(bg=DT["surface"])
+                                child.config(bg=DT["surface"])
+                            card_w.config(bg=DT["surface"])
+
+                    def _click(e):
+                        open_feedback_detail(data)
+
+                    card_w.bind("<Enter>", _enter)
+                    card_w.bind("<Leave>", _leave)
+                    card_w.bind("<Button-1>", _click)
+
+                    for child in card_w.winfo_children():
+                        child.bind("<Enter>", _enter)
+                        child.bind("<Leave>", _leave)
+                        child.bind("<Button-1>", _click)
+                        if isinstance(child, tk.Frame):
+                            for subchild in child.winfo_children():
+                                subchild.bind("<Enter>", _enter)
+                                subchild.bind("<Leave>", _leave)
+                                subchild.bind("<Button-1>", _click)
+
+                _make_events(item_card, fb)
+
+            # Auto open first if nothing selected
+            if rows and not current_selected_feedback[0]:
+                open_feedback_detail(rows[0])
+
+        render_mail_list()
 
 
 if __name__ == "__main__":

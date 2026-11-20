@@ -9,21 +9,25 @@ ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 ICON_PNG_PATH = os.path.join(ASSETS_DIR, "icon.png")
 ICON_ICO_PATH = os.path.join(ASSETS_DIR, "icon.ico")
 
-# Modern Professional Color Palette
+# Unified Professional Dark Parking-Themed Color Palette
 COLORS = {
-    "bg_main": "#F1F5F9",          # Light Slate background
-    "bg_card": "#FFFFFF",          # Pure white card background
-    "primary": "#2563EB",          # Primary Blue
-    "primary_hover": "#1D4ED8",    # Darker Blue
-    "secondary": "#475569",        # Slate Gray
-    "accent": "#0EA5E9",           # Sky Blue
-    "success": "#16A34A",          # Green
-    "danger": "#DC2626",           # Red
+    "bg_main": "#0B132B",          # Deep Midnight Asphalt Navy
+    "bg_card": "#111B38",          # Elevated parking slot card surface
+    "surface": "#111B38",          # Elevated surface
+    "surface_hi": "#1A2748",       # High surface / Hover state
+    "primary": "#0EA5E9",          # Sky Blue / Cyan accent
+    "primary_hover": "#0284C7",    # Darker Cyan Blue
+    "secondary": "#334155",        # Slate Gray
+    "accent": "#38BDF8",           # Glowing cyan accent line
+    "border_glow": "#38BDF8",      # Glowing cyan border accent
+    "success": "#16A34A",          # Forest Green
+    "danger": "#DC2626",           # Crimson Red
     "warning": "#D97706",          # Amber
-    "text_dark": "#0F172A",        # Dark text
-    "text_muted": "#64748B",       # Muted text
-    "border": "#CBD5E1",           # Border gray
-    "header_bg": "#1E293B",        # Dark Slate header
+    "text_dark": "#F8FAFC",        # Crisp white text
+    "text_light": "#F8FAFC",       # Crisp white text
+    "text_muted": "#94A3B8",       # Slate gray
+    "border": "#1E2E56",           # Subtle slot bay border
+    "header_bg": "#111B38",        # Dark surface header
     "header_text": "#F8FAFC"       # Light header text
 }
 
