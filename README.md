@@ -20,5 +20,8 @@
    - Query performance indexes.
    - Seed data for default administrator credentials (`admin` / `Admin@123`) and system parameters.
 
+3. **[`PROJECT_PROMPT.md`](file:///c:/Users/Jeswin/OneDrive/Documents/ParkSlot/PROJECT_PROMPT.md)**  
+   A plug-and-play prompt template and architectural checklist ready to feed directly into Antigravity AI to start code generation.
+
 ---
 
